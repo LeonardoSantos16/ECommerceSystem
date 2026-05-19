@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Project Path="ECommerce.Checkout.API/ECommerce.Checkout.API.csproj" Id="6e8700c6-fc2d-4431-9d18-d20869cbfb61" />
+  <Project Path="ECommerce.Gateway/ECommerce.Gateway.csproj" />
+</Solution>
