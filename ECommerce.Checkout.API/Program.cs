@@ -1,23 +1,30 @@
+using MongoDB.Driver;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDb");
+var mongoClient = new MongoClient(mongoConnectionString);
+var database = mongoClient.GetDatabase("checkoutdb");
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+builder.Services.AddSingleton(database);
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
+app.MapPost("/api/checkout/orders", async (Order order, IMongoDatabase db) =>
+{
+    var collection = db.GetCollection<Order>("orders");
+    await collection.InsertOneAsync(order);
+    return Results.Accepted($"/api/checkout/orders/{order.Id}", order);
+});
 
 app.Run();
+
+public record Order(string Id, string CustomerId, decimal TotalAmount);
