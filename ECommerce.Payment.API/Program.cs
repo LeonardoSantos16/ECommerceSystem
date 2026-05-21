@@ -1,12 +1,12 @@
 using ECommerce.Payment.API.Consumers;
 using MassTransit;
+using StackExchange.Redis;
 using static ECommerce.Checkout.API.DTOs.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-
 builder.Services.AddMassTransit(x =>
 {
     x.UsingInMemory((context, cfg) =>
@@ -21,7 +21,6 @@ builder.Services.AddMassTransit(x =>
         rider.UsingKafka((context, k) =>
         {
             k.Host("localhost:9092");
-
             k.TopicEndpoint<OrderCreatedEvent>("order-created-topic", "payment-service-group", e =>
             {
                 e.ConfigureConsumer<OrderCreatedConsumer>(context);
@@ -31,6 +30,9 @@ builder.Services.AddMassTransit(x =>
         });
     });
 });
+
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 
 var app = builder.Build();
 
