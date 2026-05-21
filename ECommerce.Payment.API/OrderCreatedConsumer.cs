@@ -1,6 +1,6 @@
+using ECommerce.Checkout.API.DTOs;
 using MassTransit;
 using StackExchange.Redis;
-using static ECommerce.Checkout.API.DTOs.Contracts;
 
 namespace ECommerce.Payment.API.Consumers;
 
@@ -8,11 +8,13 @@ public class OrderCreatedConsumer : IConsumer<OrderCreatedEvent>
 {
     private readonly IDatabase _redis;
     private readonly ILogger<OrderCreatedConsumer> _logger;
+    private readonly ITopicProducer<PaymentApprovedEvent> _paymentApprovedProducer;
 
-    public OrderCreatedConsumer(IConnectionMultiplexer redis, ILogger<OrderCreatedConsumer> logger)
+    public OrderCreatedConsumer(IConnectionMultiplexer redis, ILogger<OrderCreatedConsumer> logger, ITopicProducer<PaymentApprovedEvent> paymentApprovedProducer)
     {
         _redis = redis.GetDatabase();
         _logger = logger;
+        _paymentApprovedProducer = paymentApprovedProducer;
     }
 
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
@@ -34,6 +36,12 @@ public class OrderCreatedConsumer : IConsumer<OrderCreatedEvent>
             await Task.Delay(500);
 
             _logger.LogInformation($"Pagamento confirmado com sucesso para o pedido {orderId}");
+
+            await _paymentApprovedProducer.Produce(new PaymentApprovedEvent(
+                context.Message.OrderId,
+                context.Message.CustomerId,
+                DateTime.UtcNow));
+
         } catch (Exception ex)
         {
             await _redis.KeyDeleteAsync(lockKey);

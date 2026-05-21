@@ -1,7 +1,7 @@
+using ECommerce.Checkout.API.DTOs;
 using ECommerce.Payment.API.Consumers;
 using MassTransit;
 using StackExchange.Redis;
-using static ECommerce.Checkout.API.DTOs.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +17,7 @@ builder.Services.AddMassTransit(x =>
     x.AddRider(rider =>
     {
         rider.AddConsumer<OrderCreatedConsumer>();
+        rider.AddProducer<PaymentApprovedEvent>("payment-approved-topic");
 
         rider.UsingKafka((context, k) =>
         {
