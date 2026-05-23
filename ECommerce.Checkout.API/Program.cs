@@ -1,5 +1,6 @@
 using ECommerce.Checkout.API.Consurmers;
 using MassTransit;
+using MassTransit.Licensing;
 using MongoDB.Driver;
 using static ECommerce.Checkout.API.DTOs.Contracts;
 
@@ -16,7 +17,10 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingInMemory((context, cfg) => { cfg.ConfigureEndpoints(context); });
+    x.UsingInMemory((context, cfg) =>
+    {
+        cfg.ConfigureEndpoints(context);
+    });
 
     x.AddRider(rider =>
     {
@@ -27,6 +31,7 @@ builder.Services.AddMassTransit(x =>
         rider.UsingKafka((context, k) =>
         {
             k.Host("localhost:9092");
+            k.ClientId = $"checkout-{Guid.NewGuid()}";
             k.TopicEndpoint<PaymentApprovedEvent>("payment-approved-topic", "checkout-service-group", e =>
             {
                 e.ConfigureConsumer<PaymentApprovedConsumer>(context);
@@ -60,6 +65,12 @@ app.MapPost("/api/checkout/orders", async (
     ));
 
     return Results.Accepted($"/api/checkout/orders/{order.Id}", order);
+});
+
+app.MapGet("/api/checkout/health", (IConfiguration config) =>
+{
+    var port = config["ASPNETCORE_URLS"];
+    return Results.Ok(new { message = "Checkout API Ativa", portApi = port });
 });
 
 app.Run();
