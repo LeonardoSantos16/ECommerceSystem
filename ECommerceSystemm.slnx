@@ -4,5 +4,7 @@
   </Folder>
   <Project Path="ECommerce.Checkout.API/ECommerce.Checkout.API.csproj" Id="6e8700c6-fc2d-4431-9d18-d20869cbfb61" />
   <Project Path="ECommerce.Gateway/ECommerce.Gateway.csproj" />
+  <Project Path="ECommerce.Inventory.API/ECommerce.Inventory.API.csproj" Id="6baf788f-5e45-4dc8-b352-7e2be8d4661c" />
+  <Project Path="Ecommerce.Notification.API/Ecommerce.Notification.API.csproj" Id="a8056183-803a-4d58-b0f2-3cbe23a7bcff" />
   <Project Path="ECommerce.Payment.API/ECommerce.Payment.API.csproj" Id="0e0b70be-3e60-4a33-b142-eb699016fb7b" />
 </Solution>
