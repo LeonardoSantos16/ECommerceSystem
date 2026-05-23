@@ -1,3 +1,4 @@
+using ECommerce.Checkout.API.Consurmers;
 using MassTransit;
 using MongoDB.Driver;
 using static ECommerce.Checkout.API.DTOs.Contracts;
@@ -15,18 +16,22 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddMassTransit(x =>
 {
-    x.UsingInMemory((context, cfg) =>
-    {
-        cfg.ConfigureEndpoints(context);
-    });
+    x.UsingInMemory((context, cfg) => { cfg.ConfigureEndpoints(context); });
 
     x.AddRider(rider =>
     {
+        rider.AddConsumer<PaymentApprovedConsumer>();
+
         rider.AddProducer<OrderCreatedEvent>("order-created-topic");
 
         rider.UsingKafka((context, k) =>
         {
-            k.Host("localhost:9092"); 
+            k.Host("localhost:9092");
+            k.TopicEndpoint<PaymentApprovedEvent>("payment-approved-topic", "checkout-service-group", e =>
+            {
+                e.ConfigureConsumer<PaymentApprovedConsumer>(context);
+                e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+            });
         });
     });
 });
